@@ -69,7 +69,7 @@ class DramaboxService  implements MovieServiceInterface
             Cache::put($cacheKey, $init, now()->addMinutes(15));
         }
 
-        $cacheKeyRec = 'dramabox_recommend_' . sha1(date('Y-m-d H'));
+        $cacheKeyRec = 'dramabox_recommend_' . sha1(date('Y-m-d H').$pageNo);
 
         if (Cache::has($cacheKeyRec)) {
             $res = Cache::get($cacheKeyRec);
