@@ -23,6 +23,17 @@ class MovieController extends Controller
 
     public function getTheaters()
     {
-        return response()->json($this->movieService->fetchTheater());
+        return $this->movieService->fetchTheater();
+    }
+    public function getPlayers()
+    {
+        return $this->movieService->fetchPlayers();
+    }
+
+    public function getRecommend(Request $request)
+    {
+        $pageNo = $request->pageNo ?? 1;
+        
+        return $this->movieService->fetchRecommend($pageNo);
     }
 }

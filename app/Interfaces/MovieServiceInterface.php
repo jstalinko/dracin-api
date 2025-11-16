@@ -8,5 +8,7 @@ interface MovieServiceInterface {
 
     public function fetchChapters();
 
+    public function fetchPlayers();
+
     public function fetchTheaterDetails($theaterId);
 }

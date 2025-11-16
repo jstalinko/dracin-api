@@ -11,5 +11,7 @@ Route::get('/user', function (Request $request) {
 
 Route::group(['prefix' => 'v1/{service}'] , function(){
 
-   Route::get('/theaters', [\App\Http\Controllers\MovieController::class, 'getTheaters']); 
+   Route::get('/theaters', [\App\Http\Controllers\MovieController::class, 'getTheaters']);
+   Route::get('/recommend/{pageNo}',[\App\Http\Controllers\MovieController::class,'getRecommend']);
+   Route::get('/players',[\App\Http\Controllers\MovieController::class,'getPlayers']); 
 });
