@@ -11,26 +11,32 @@ use App\Interfaces\MovieServiceInterface;
 class DramaboxService  implements MovieServiceInterface
 {
 
+    public $dramaboxInit;
+    public function __construct()
+    {
+        $cacheKey = 'dramabox_theaters_' . sha1(date('Y-m-d_H'));
+        if (Cache::has($cacheKey)) {
+            $this->dramaboxInit = Cache::get($cacheKey);
+        } else {
+            $this->dramaboxInit = $this->init();
+            if (is_array($this->dramaboxInit) && ($response['success'] ?? false) === true) {
+                Cache::put($cacheKey, $this->dramaboxInit, now()->addMinutes(15));
+            }
+        }
+    }
 
     public function fetchTheater()
     {
         $ip = request()->ip();
         $lang = request()->lang ?? 'in';
-        $cacheKey = 'dramabox_theaters_' . sha1(date('Y-m-d_H'));
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-        $init = $this->init();
-        if (is_array($init) && ($response['success'] ?? false) === true) {
-            Cache::put($cacheKey, $init, now()->addMinutes(15));
-        }
+
 
         $cacheKeyTheater = 'dramabox_theaters_data_' . sha1(date('d-m-Y') . $lang);
         if (Cache::has($cacheKeyTheater)) {
             $res = Cache::get($cacheKeyTheater);
             return response()->json($res, 200, [], JSON_PRETTY_PRINT)->getData(true);
         }
-        $data = $this->getTheather($init['token'], $lang);
+        $data = $this->getTheather($this->dramaboxInit['token'], $lang);
 
         if (is_array($data) && ($data['success'] ?? false) === true) {
             $collect = collect($data['data']['columnVoList']);
@@ -55,29 +61,15 @@ class DramaboxService  implements MovieServiceInterface
         $ip = request()->ip();
         $lang = request()->lang ?? 'in';
 
-        $cacheKey = 'dramabox_theaters_' . sha1(date('Y-m-d_H'));
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-        $init = $this->init();
-        if (is_array($init) && ($response['success'] ?? false) === true) {
-            Cache::put($cacheKey, $init, now()->addMinutes(15));
-        }
-        $init = $this->init();
 
-        if (is_array($init) && ($response['success'] ?? false) === true) {
-            Cache::put($cacheKey, $init, now()->addMinutes(15));
-        }
-
-        $cacheKeyRec = 'dramabox_recommend_' . sha1(date('Y-m-d H').$pageNo);
+        $cacheKeyRec = 'dramabox_recommend_' . sha1(date('Y-m-d H') . $pageNo);
 
         if (Cache::has($cacheKeyRec)) {
             $res = Cache::get($cacheKeyRec);
             return response()->json($res, 200, [], JSON_PRETTY_PRINT);
         }
 
-        $data = $this->getRecommend($init['token'], $pageNo, $lang);
-
+        $data = $this->getRecommend($this->dramaboxInit['token'], $pageNo, $lang);
 
         if (is_array($data) && ($data['success'] ?? false) === true) {
             $r['success'] = true;
@@ -93,6 +85,69 @@ class DramaboxService  implements MovieServiceInterface
         }
     }
 
+    public function fetchCategory()
+    {
+         $ip = request()->ip();
+        $lang = request()->lang ?? 'in';
+
+
+        $cacheKeyRec = 'dramabox_category_' . sha1(date('Y-m-d H') );
+
+        if (Cache::has($cacheKeyRec)) {
+            $res = Cache::get($cacheKeyRec);
+            return response()->json($res, 200, [], JSON_PRETTY_PRINT);
+        }
+
+        $data = $this->getCategory($this->dramaboxInit['token'],$lang);
+
+        
+        if (is_array($data) && ($data['success'] ?? false) === true) {
+            $r['success'] = true;
+            $r['message'] = 'success';
+            $r['data'] = $data['data'];
+            Cache::put($cacheKeyRec, $r, now()->addDay());
+            return response()->json($r, 200, [], JSON_PRETTY_PRINT);
+        } else {
+            $r['success'] = false;
+            $r['message'] = 'failed';
+
+            return response()->json($r, 200, [], JSON_PRETTY_PRINT);
+        }
+
+    }
+    private function getCategory($token,$lang='in')
+    {
+        
+
+        $pageNo = 1;
+        $typeList = [];
+        $pageSize = 15;
+
+        $timestamp = now()->timestamp * 1000;
+
+        // Payload for classification data
+        $payload = [
+            'typeList' => $typeList,
+            'showLabels' => true,
+            'pageNo' => $pageNo,
+            'pageSize' => $pageSize,
+        ];
+
+      $deviceId = (string) str()->uuid();
+        $headers = \App\Helpers\Dramabox::generateRandomHeaders($lang, $token, $deviceId, \App\Helpers\Dramabox::generateRandomAndroidId(), json_encode($payload));
+
+         $client = new \GuzzleHttp\Client([
+            'proxy' => \App\Helpers\Dramabox::getProxies(),
+            'verify' => false
+        ]);
+        $response = $client->request('POST', 'https://sapi.dramaboxdb.com/drama-box/he001/classify?timestamp=' . (now()->timestamp * 1000), [
+            'headers' => $headers,
+            'body' => json_encode($payload)
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
+
+    }
     public function fetchChapters()
     {
         // Implementation for fetching chapters
@@ -101,10 +156,107 @@ class DramaboxService  implements MovieServiceInterface
     public function fetchTheaterDetails($theaterId)
     {
         // Implementation for fetching theater details by ID
+        $ip = request()->ip();
+        $lang = request()->lang ?? 'in';
+        $bookId = $theaterId;
+
+        $cacheKeyDetail = 'dramabox_detail_' . sha1(date('d-m-Y') . $bookId);
+        if (Cache::has($cacheKeyDetail)) {
+            $res = Cache::get($cacheKeyDetail);
+            return response()->json($res, 200, [], JSON_PRETTY_PRINT);
+        }
+
+        $data = $this->getTheatherDetail($this->dramaboxInit['token'], $bookId, $lang);
+        if (is_array($data) && ($data['success'] ?? false) === true) {
+            $r['success'] = true;
+            $r['message'] = 'success';
+            $r['data'] = $data['data'];
+            Cache::put($cacheKeyDetail, $r, now()->addDay());
+            return response()->json($r, 200, [], JSON_PRETTY_PRINT);
+        } else {
+
+            $r['success'] = false;
+            $r['message'] = 'Failed';
+            return response()->json($r, 200, [], JSON_PRETTY_PRINT);
+        }
+    }
+    public function fetchTheaterRecommendationDetail($theaterId)
+    {
+
+        $ip = request()->ip();
+        $lang = request()->lang ?? 'in';
+        $bookId = $theaterId;
+
+        $cacheKeyRec = 'dramabox_detail_recommend_'.sha1(date('d-m-Y').$bookId);
+        if(Cache::has($cacheKeyRec))
+        {
+            $res = Cache::get($cacheKeyRec);
+            return response()->json($res,200,[],JSON_PRETTY_PRINT);
+        }
+
+        $data = $this->getRecommendationDetail($this->dramaboxInit['token'],$bookId,$lang);
+          if (is_array($data) && ($data['success'] ?? false) === true) {
+            $r['success'] = true;
+            $r['message'] = 'success';
+            $r['data'] = $data['data'];
+            Cache::put($cacheKeyRec, $r, now()->addDay());
+            return response()->json($r, 200, [], JSON_PRETTY_PRINT);
+        } else {
+
+            $r['success'] = false;
+            $r['message'] = 'Failed';
+            return response()->json($r, 200, [], JSON_PRETTY_PRINT);
+        }
+    }
+   
+
+
+
+    private function getRecommendationDetail($token,$bookId,$lang='in')
+    {
+        
+ $client = new \GuzzleHttp\Client([
+            'proxy' => \App\Helpers\Dramabox::getProxies(),
+            'verify' => false
+        ]);
+
+        $payload = [
+            'bookId' => $bookId
+        ];
+
+        $deviceId = (string) str()->uuid();
+        $headers = \App\Helpers\Dramabox::generateRandomHeaders($lang, $token, $deviceId, \App\Helpers\Dramabox::generateRandomAndroidId(), json_encode($payload));
+
+        $response = $client->request('POST', 'https://sapi.dramaboxdb.com/drama-box/chapterv2/detail?timestamp=' . (now()->timestamp * 1000), [
+            'headers' => $headers,
+            'body' => json_encode($payload)
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
+
     }
 
+    private function getTheatherDetail($token, $bookId, $lang = 'in')
+    {
+        $client = new \GuzzleHttp\Client([
+            'proxy' => \App\Helpers\Dramabox::getProxies(),
+            'verify' => false
+        ]);
 
+        $payload = [
+            'bookId' => $bookId
+        ];
 
+        $deviceId = (string) str()->uuid();
+        $headers = \App\Helpers\Dramabox::generateRandomHeaders($lang, $token, $deviceId, \App\Helpers\Dramabox::generateRandomAndroidId(), json_encode($payload));
+
+        $response = $client->request('POST', 'https://sapi.dramaboxdb.com/drama-box/he001/reserveBookDetail?timestamp=' . (now()->timestamp * 1000), [
+            'headers' => $headers,
+            'body' => json_encode($payload)
+        ]);
+
+        return json_decode($response->getBody()->getContents(), true);
+    }
 
     private function getRecommend($token, $pageNo, $lang = 'in')
     {

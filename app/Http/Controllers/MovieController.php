@@ -36,4 +36,28 @@ class MovieController extends Controller
         
         return $this->movieService->fetchRecommend($pageNo);
     }
+    public function getTheaterDetail(Request $request)
+    {
+        $bookId = $request->bookId;
+        if(!$bookId)
+        {
+            return response()->json(['success' => false,'message' => 'BookId required'], 403,[],JSON_PRETTY_PRINT);
+        }
+        return $this->movieService->fetchTheaterDetails($bookId);
+    }
+
+    public function getTheaterRecommendationDetail(Request $request)
+    {
+        $bookId = $request->bookId;
+        if(!$bookId)
+        {
+            return response()->json(['success' => false,'message' => 'BookId required'], 403,[],JSON_PRETTY_PRINT);
+        }
+        return $this->movieService->fetchTheaterRecommendationDetail($bookId);
+    }
+
+    public function getCategory(Request $request)
+    {
+        return $this->movieService->fetchCategory();
+    }
 }
