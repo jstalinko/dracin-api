@@ -255,4 +255,29 @@ class Dramabox
 
         return $headers;
     }
+
+    public static function normalizeFromDramabox(array $item): array
+{
+    $cdn = $item['cdnList'][0]['videoPathList'] ?? [];
+
+    $videos = collect($cdn)->map(function ($v) {
+        return [
+            'quality'     => $v['quality'] ?? null,
+            'url'         => $v['videoPath'] ?? null,
+            'is_default'  => $v['isDefault'] ?? 0,
+        ];
+    })->values();
+
+    // Cari video default
+    $default = $videos->firstWhere('is_default', 1) ?? $videos->first();
+
+    return [
+        'id'          => $item['chapterId'] ?? null,
+        'title'       => $item['chapterName'] ?? $item['bookName'] ?? null,
+        'description' => null,
+        'image'       => $item['coverWap'] ?? null,
+        'video_urls'  => $videos,
+        'default_url' => $default['url'] ?? null,
+    ];
+}
 }

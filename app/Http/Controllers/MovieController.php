@@ -5,59 +5,69 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\DramaboxService;
 use App\Services\NetshortService;
-use App\Interfaces\MovieServiceInterface;
+use App\Services\DramawaveService;
 
 class MovieController extends Controller
 {
-    protected MovieServiceInterface $movieService;
+    private $service;
     public function __construct(Request $request)
     {
+
         $serviceName = $request->route('service');
 
-        $this->movieService = match ($serviceName) {
+        $this->service = match ($serviceName) {
             'dramabox' => app(DramaboxService::class),
             'netshort' => app(NetshortService::class),
+            'dramawave' => app(DramawaveService::class),
             default => app(DramaboxService::class), // fallback
         };
     }
 
+
     public function getTheaters()
     {
-        return $this->movieService->fetchTheater();
+        return response()->json($this->service->getTheaters(), 200, [], JSON_PRETTY_PRINT);
     }
-    public function getPlayers()
-    {
-        return $this->movieService->fetchPlayers();
-    }
-
-    public function getRecommend(Request $request)
-    {
-        $pageNo = $request->pageNo ?? 1;
-        
-        return $this->movieService->fetchRecommend($pageNo);
-    }
-    public function getTheaterDetail(Request $request)
+    public function getDetail(Request $request)
     {
         $bookId = $request->bookId;
-        if(!$bookId)
-        {
-            return response()->json(['success' => false,'message' => 'BookId required'], 403,[],JSON_PRETTY_PRINT);
-        }
-        return $this->movieService->fetchTheaterDetails($bookId);
-    }
+        if (!$bookId) return response()->json(['success' => false, 'message' => 'BookId Required'], 201, [], JSON_PRETTY_PRINT);
 
-    public function getTheaterRecommendationDetail(Request $request)
+        return response()->json($this->service->getDetail($bookId), 200, [], JSON_PRETTY_PRINT);
+    }
+    public function getChapters(Request $request)
     {
         $bookId = $request->bookId;
-        if(!$bookId)
-        {
-            return response()->json(['success' => false,'message' => 'BookId required'], 403,[],JSON_PRETTY_PRINT);
-        }
-        return $this->movieService->fetchTheaterRecommendationDetail($bookId);
-    }
 
+        if (!$bookId) return response()->json(['success' => false, 'message' => 'BookId Required'], 201, [], JSON_PRETTY_PRINT);
+        return response()->json($this->service->getChapters($bookId), 200, [], JSON_PRETTY_PRINT);
+    }
     public function getCategory(Request $request)
     {
-        return $this->movieService->fetchCategory();
+        $pageNo = $request->page ?? 1;
+        return response()->json($this->service->getCategory($pageNo), 200, [], JSON_PRETTY_PRINT);
+    }
+    public function getSearch(Request $request)
+    {
+        $query = $request->input('query') ?? 'cinta';
+        if(!$query)
+        {
+            return response()->json(['success' => false,'message' => 'Error, query required'],201,[],JSON_PRETTY_PRINT);
+        }
+
+        return response()->json($this->service->getSearch($query),200,[],JSON_PRETTY_PRINT);
+    }
+    public function getStream(Request $request)
+    {
+        $bookId = $request->bookId;
+        $episode = $request->episode ?? 1;
+        if (!$bookId) return response()->json(['success' => false, 'message' => 'BookId Required'], 201, [], JSON_PRETTY_PRINT);
+
+        return response()->json($this->service->getStream($bookId, $episode), 200, [], JSON_PRETTY_PRINT);
+    }
+    public function getRecommend()
+    {
+
+        return response()->json($this->service->getRecommend(), 200, [], JSON_PRETTY_PRINT);
     }
 }
