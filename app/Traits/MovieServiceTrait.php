@@ -109,18 +109,21 @@ public function normalizeContent($item,$service = 'dramabox')
         'tags' => $this->array_get_multi($item, [
             'tags',
             'labelArray',
-            'tagNames'
+            'tagNames',
+            'shortPlayLabels'
         ], []),
         'views' => $this->array_get_multi($item,[
             'playCount',
             'totalReserveNum'
         ],0),
         'episode' => $this->array_get_multi($item,[
-            'chapterCount'
+            'chapterCount',
+            'totalEpisode'
         ],0),
 
         'introduction' => $this->array_get_multi($item,[
-            'introduction'
+            'introduction',
+            'shotIntroduce'
         ],'-'),
         'source' => $service,
     ];

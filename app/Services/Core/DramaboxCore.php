@@ -3,8 +3,9 @@
 namespace App\Services\Core;
 
 use App\Helpers\Dramabox;
-use App\Traits\MovieServiceTrait;
 use Illuminate\Support\Str;
+use App\Traits\MovieServiceTrait;
+use Illuminate\Support\Facades\Cache;
 
 class DramaboxCore
 {
@@ -21,13 +22,20 @@ class DramaboxCore
 
         $this->deviceId = (string) Str::uuid();
         $this->androidId = Dramabox::generateRandomAndroidId();
-        $bootstrap = $this->bootstrap();
-        $this->token = $bootstrap['data']['user']['token'];
         $this->lang = 'in';
         $this->pageNo = 1;
         $this->searchQuery = '';
-        // dd($bootstrap);
+        $ttl_minutes = 5 * 60;
 
+        // Nama kunci yang unik untuk token ini di cache
+        $cache_key = 'drambx_token';
+
+        $token = Cache::remember($cache_key, $ttl_minutes, function () {
+            $bootstrap = $this->bootstrap();
+            $token_value = $bootstrap['data']['user']['token'];
+            return $token_value;
+        });
+        $this->token = $token;
     }
 
     public function bootstrap()
@@ -168,8 +176,9 @@ class DramaboxCore
         );
         return $response;
     }
-    public function fetchSearch($query,$pageNo = 1) {
-         $pageSize = 20;
+    public function fetchSearch($query, $pageNo = 1)
+    {
+        $pageSize = 20;
         $searchSource = '搜索按钮';
         $from = 'search_sug';
 
@@ -186,10 +195,10 @@ class DramaboxCore
             'from' => $from,
             'keyword' => $query,
         ];
-        
+
         $headers = Dramabox::generateRandomHeaders($this->lang, $this->token, $this->deviceId, $this->androidId, json_encode($payload));
 
-        $response = $this->http('POST','https://sapi.dramaboxdb.com/drama-box/search/search?timestamp='.$timestamp , [
+        $response = $this->http('POST', 'https://sapi.dramaboxdb.com/drama-box/search/search?timestamp=' . $timestamp, [
             'headers' => $headers,
             'body' => json_encode($payload)
         ]);
@@ -232,12 +241,12 @@ class DramaboxCore
         return $response;
     }
 
-    
-    public function fetchStream($bookId,$eps = 1)
+
+    public function fetchStream($bookId, $eps = 1)
     {
-         $payload = [
-            'boundaryIndex' => ($eps-1) ?? 0,
-            'index' => ($eps-1) ?? 0,
+        $payload = [
+            'boundaryIndex' => ($eps - 1) ?? 0,
+            'index' => ($eps - 1) ?? 0,
             'comingPlaySectionId' => -1,
             'needEndRecommend' => 0,
             'currencyPlaySource' => 'discover_new_rec_new',
@@ -261,5 +270,4 @@ class DramaboxCore
         );
         return $response;
     }
-
 }
