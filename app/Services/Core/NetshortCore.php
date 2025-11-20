@@ -59,7 +59,7 @@ class NetshortCore
     }
     public function fetchDetail($bookId)
     {
-        //  dd($bookId);
+        
         $headers = Netshort::generateRandomHeaders($this->lang);
         $data = Netshort::generatePayload([
             'codec' => '',

@@ -48,6 +48,7 @@ class NetshortService
         } else {
             $r['success'] = false;
             $r['message'] = 'failed';
+            $r['errors'] = $data;
         }
 
         return $r;
@@ -66,6 +67,7 @@ class NetshortService
         } else {
             $r['success'] = false;
             $r['message'] = 'Failed';
+            $r['errors'] = $data;
         }
         return $r;
     }
@@ -106,6 +108,7 @@ class NetshortService
         }else{
             $r['success'] = false;
             $r['message'] = 'Failed';
+            $r['errors'] = $data;
         }
         return $r;
     }
@@ -121,6 +124,7 @@ class NetshortService
         }else{
             $r['success'] = false;
             $r['message'] = 'Failed';
+            $r['errors'] = $data;
         }
 
         return $r;
@@ -138,6 +142,7 @@ class NetshortService
         }else{
             $r['success'] = false;
             $r['message'] = 'Failed';
+            $r['errors'] = $data;
         }
         return $r;
     }
