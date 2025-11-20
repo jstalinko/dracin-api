@@ -16,9 +16,10 @@ class ApiMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Ambil API Key dari header atau query
-        $apiKey = $request->header('X-JDIGTAL-APIKEY') 
+        $apiKey = $request->header('x-jdigital-apikey') 
                   ?? $request->query('apikey');
 
+                 // dd($request->header());
         if (!$apiKey) {
             return response()->json([
                 'success' => false,
