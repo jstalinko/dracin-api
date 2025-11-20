@@ -89,7 +89,6 @@ public function normalizeContent($item,$service = 'dramabox')
     return [
         'id' => $this->array_get_multi($item, [
             'bookId',
-            'id',
             'shortPlayId',
         ]),
 
