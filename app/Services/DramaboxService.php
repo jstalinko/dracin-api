@@ -52,9 +52,10 @@ class DramaboxService
 
     public function getTheaters()
     {
-        return $this->cacheResponse(__FUNCTION__, [], function () {
+        return $this->cacheResponse(__FUNCTION__, [$this->core->lang,$this->core->pageNo], function () {
             $data = $this->core->fetchTheater();
 
+        
             if (!isset($data['data'])) {
                 return ['success' => false, 'message' => 'Failed'];
             }
@@ -79,7 +80,7 @@ class DramaboxService
 
     public function getCategory($pageNo)
     {
-        return $this->cacheResponse(__FUNCTION__, [$pageNo], function () use ($pageNo) {
+        return $this->cacheResponse(__FUNCTION__, [$pageNo,$this->core->lang], function () use ($pageNo) {
 
             $data = $this->core->fetchCategory($pageNo);
 
@@ -91,7 +92,7 @@ class DramaboxService
 
     public function getDetail($bookId)
     {
-        return $this->cacheResponse(__FUNCTION__, [$bookId], function () use ($bookId) {
+        return $this->cacheResponse(__FUNCTION__, [$bookId,$this->core->lang], function () use ($bookId) {
 
             $data = $this->core->fetchTheaterDetail($bookId);
 
@@ -107,7 +108,7 @@ class DramaboxService
 
     public function getChapters($bookId)
     {
-        return $this->cacheResponse(__FUNCTION__, [$bookId], function () use ($bookId) {
+        return $this->cacheResponse(__FUNCTION__, [$bookId,$this->core->lang], function () use ($bookId) {
             $data = $this->core->fetchChapterDetail($bookId);
 
             if (!isset($data['data'])) {
@@ -150,7 +151,7 @@ class DramaboxService
 
     public function getSearch($query)
     {
-        return $this->cacheResponse(__FUNCTION__, [$query, $this->core->pageNo], function () use ($query) {
+        return $this->cacheResponse(__FUNCTION__, [$query, $this->core->pageNo ,$this->core->lang], function () use ($query) {
 
             $data = $this->core->fetchSearch($query, $this->core->pageNo);
 
@@ -168,7 +169,7 @@ class DramaboxService
 
     public function getStream($bookId, $eps = 1)
     {
-        return $this->cacheResponse(__FUNCTION__, [$bookId, $eps], function () use ($bookId, $eps) {
+        return $this->cacheResponse(__FUNCTION__, [$bookId, $eps , $this->core->lang], function () use ($bookId, $eps) {
 
             $data = $this->core->fetchStream($bookId, $eps);
 
@@ -186,7 +187,7 @@ class DramaboxService
 
     public function getRecommend()
     {
-        return $this->cacheResponse(__FUNCTION__, [], function () {
+        return $this->cacheResponse(__FUNCTION__, [$this->core->lang,$this->core->pageNo], function () {
 
             $data = $this->core->fetchRecommend();
 
