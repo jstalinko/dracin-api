@@ -9,7 +9,7 @@ Route::get('/user', function (Request $request) {
 
 
 
-Route::group(['prefix' => 'v1/{service}'], function () {
+Route::group(['prefix' => 'v1/{service}','middleware' => 'apikey'], function () {
 
     Route::get('/theaters', [\App\Http\Controllers\MovieController::class, 'getTheaters']);
     Route::get('/recommend', [\App\Http\Controllers\MovieController::class, 'getRecommend']);

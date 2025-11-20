@@ -111,8 +111,19 @@ class NetshortService
     }
     public function getSearch($query)
     {
-        return $this->core->fetchSearch();
+        $data= $this->core->fetchSearch($query);
+        if(isset($data['data']))
+        {
+            $datax = collect($data['data']['searchCodeSearchResult'])->map(fn($item) =>  $this->normalizeContent($item,'netshort'));
+            $r['success'] = true;
+            $r['message'] = 'Success';
+            $r['data'] = $datax;
+        }else{
+            $r['success'] = false;
+            $r['message'] = 'Failed';
+        }
 
+        return $r;
     }
 
     public function getRecommend()

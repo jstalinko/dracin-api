@@ -13,6 +13,8 @@ class NetshortCore
     use MovieServiceTrait;
     public $lang;
     public $pageNo;
+
+    
     public function __construct()
     {
         $this->lang = 'in';
@@ -117,7 +119,30 @@ class NetshortCore
             return null;
         }
     }
-    public function fetchSearch() {}
+    public function fetchSearch($query) {
+        $page = $this->pageNo ?? 1;
+             $headers = Netshort::generateRandomHeaders($this->lang);
+        $data = Netshort::generatePayload([
+            'id' => 0,
+            'shortPlayId' => 0,
+            'searchCode' => $query,
+            'pageNo' => $page,
+            'pageSize' => 10,
+            'searchFlag' => 1,
+        ]);
+        $headers['encrypt-key'] = $data['key'];
+           $response = $this->customRequest($headers)
+            ->withBody($data['data'])
+            ->post('https://appsecapi.netshort.com/prod-app-api/video/shortPlay/search/searchByKeyword');
+
+        if ($response->successful()) {
+            $decrypted = Netshort::decryptBodyResponse($response);
+            return $decrypted;
+        } else {
+            return null;
+        }
+        
+    }
     public function fetchRecommend($bookId) {
        //  dd($bookId);
         $headers = Netshort::generateRandomHeaders($this->lang);
